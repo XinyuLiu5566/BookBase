@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import requests
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 DATABASE_USERNAME = os.getenv("DATABASE_USERNAME")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
@@ -320,7 +321,7 @@ def create_parser():
     return parser.parse_args()
 
 
-def export_book(connect, cursor, filename):
+def export_book_json(connect, cursor, filename):
     """
     export the database to a json file
     :param connect: the database connection
@@ -338,7 +339,7 @@ def export_book(connect, cursor, filename):
         outfile.write(json_results)
 
 
-def export_author(connect, cursor, filename):
+def export_author_json(connect, cursor, filename):
     """
     export the database to a json file
     :param connect: the database connection
@@ -356,10 +357,10 @@ def export_author(connect, cursor, filename):
         outfile.write(json_results)
 
 
-def import_book(connect, cursor, filename):
+def import_book_json(connect, cursor, filename):
     """
     import a json file to update database
-    :param connection: the database connection
+    :param connect: the database connection
     :param cursor: the database cursor
     :param filename: the imported filename
     :return:
@@ -389,7 +390,7 @@ def import_book(connect, cursor, filename):
         print("Book" + data.get('book_name') + " get updated!")
 
 
-def import_author(connect, cursor, filename):
+def import_author_json(connect, cursor, filename):
     """
     import a json file to update database
     :param connect: the database connection
@@ -433,11 +434,10 @@ if __name__ == '__main__':
     store_similar_books(CONN, CURR, BOOKINFO, ARGS.book_number)
     store_similar_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')), ARGS.author_number)
     if ARGS.import_book is not None:
-        import_book(CONN, CURR, ARGS.import_JSON)
+        import_book_json(CONN, CURR, ARGS.import_book)
     if ARGS.export_book is not None:
-        export_book(CONN, CURR, ARGS.export_JSON)
+        export_book_json(CONN, CURR, ARGS.export_book)
     if ARGS.export_author is not None:
-        export_author(CONN, CURR, ARGS.export_JSON)
+        export_author_json(CONN, CURR, ARGS.export_author)
     if ARGS.import_author is not None:
-        import_author(CONN, CURR, ARGS.export_JSON)
-        
+        import_author_json(CONN, CURR, ARGS.export_author)
