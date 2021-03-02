@@ -14,13 +14,13 @@ DATABASE_USERNAME = os.getenv("DATABASE_USERNAME")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 
 
-
-
 def get_book_info(CONN, CURR, website):
     """
-
-    :param website:
-    :return:
+    get the html info of a book
+    :param CONN: database connect
+    :param CURR: database cursor
+    :param website: the website of the book to scrape
+    :return: the dictionary contains the required book information
     """
 
     if website[:30] != "https://www.goodreads.com/book":
@@ -77,9 +77,11 @@ def get_book_info(CONN, CURR, website):
 
 def get_author_info(CONN, CURR, website):
     """
-
-    :param website:
-    :return:
+    get the html info of a author
+    :param CONN: database connect
+    :param CURR: database cursor
+    :param website: the website of the author to scrape
+    :return: the dictionary contains the required author information
     """
     if get_author_table_size(CONN, CURR) > 50:
         warnings.warn("There are " + str(get_author_table_size(CONN, CURR))
@@ -136,10 +138,10 @@ def get_author_info(CONN, CURR, website):
 
 def store_book(connect, cursor, book_info):
     """
-
-    :param connect:
-    :param cursor:
-    :param book_info:
+    store the book information into database
+    :param connect: database connect
+    :param cursor: database cursor
+    :param book_info: the information of the book (dict) to store into database
     :return:
     """
     similar_books = book_info.get('similar_books')
@@ -168,10 +170,10 @@ def store_book(connect, cursor, book_info):
 
 def store_author(connect, cursor, author_info):
     """
-
-    :param connect:
-    :param cursor:
-    :param author_info:
+    store the author information into database
+    :param connect: database connect
+    :param cursor: database cursor
+    :param author_info: the information of the author (dict) to store into database
     :return:
     """
     related_author = author_info.get('related_author')
@@ -205,11 +207,11 @@ def store_author(connect, cursor, author_info):
 
 def store_similar_books(connect, cursor, book_info, stop_number):
     """
-
-    :param connect:
-    :param cursor:
-    :param book_info:
-    :param stop_number:
+    store the similar books in order to traverse
+    :param connect: database connect
+    :param cursor: database cursor
+    :param book_info: current book
+    :param stop_number: the critical point that satisfies the requirement
     :return:
     """
     similar_books = book_info.get('similar_books')
@@ -230,11 +232,11 @@ def store_similar_books(connect, cursor, book_info, stop_number):
 
 def store_similar_author(connect, cursor, author_info, stop_number):
     """
-
-    :param connect:
-    :param cursor:
-    :param author_info:
-    :param stop_number:
+    store the similar related authors in order to traverse
+    :param connect: database connect
+    :param cursor: database cursor
+    :param author_info: current author
+    :param stop_number: the critical point that satisfies the requirement
     :return:
     """
     related_author = author_info.get('related_author')
@@ -256,10 +258,10 @@ def store_similar_author(connect, cursor, author_info, stop_number):
 
 def get_book_table_size(connect, cursor):
     """
-
-    :param connect:
-    :param cursor:
-    :return:
+    get the current size of book table in the database
+    :param connect: database connect
+    :param cursor: database cursor
+    :return: the size of the book table in the database
     """
     cursor.execute("""select * from book_tb""")
     results = cursor.fetchall()
@@ -269,10 +271,10 @@ def get_book_table_size(connect, cursor):
 
 def get_author_table_size(connect, cursor):
     """
-
-    :param connect:
-    :param cursor:
-    :return:
+    get the current size of author table in the database
+    :param connect: database connect
+    :param cursor: database cursor
+    :return: the size of the author table in the database
     """
     cursor.execute("""select * from author_tb""")
     results = cursor.fetchall()
@@ -282,8 +284,8 @@ def get_author_table_size(connect, cursor):
 
 def connect_to_db():
     """
-
-    :return:
+    connect to the database
+    :return: return the connect and cursor of the connection
     """
     connect = sqlite3.connect('book_and_author_db')
     connect.row_factory = sqlite3.Row
@@ -302,8 +304,8 @@ def connect_to_db():
 
 def create_parser():
     """
-
-    :return:
+    create the Command Line Interface
+    :return: the arguments that the Command Line Interface has
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('book_url', type=str, help='the GoodReads book website to start with')
@@ -311,34 +313,55 @@ def create_parser():
                         help='the number of books you want to store into database')
     parser.add_argument('--author_number', type=str, default=60,
                         help='the number of authors you want to store into database')
-    parser.add_argument('--import_JSON', type=str, help='the JSON file to read from')
-    parser.add_argument('--export_JSON', type=str, help='the JSON file to write to')
+    parser.add_argument('--import_author', type=str, help='the JSON file of author to read from')
+    parser.add_argument('--export_author', type=str, help='the JSON file to write the author table to')
+    parser.add_argument('--import_book', type=str, help='the JSON file of book to read from')
+    parser.add_argument('--export_book', type=str, help='the JSON file to write the book table to')
     return parser.parse_args()
 
 
-def export_json(connection, cursor, filename):
+def export_book(connect, cursor, filename):
     """
-
-    :param connection:
-    :param cursor:
-    :param filename:
+    export the database to a json file
+    :param connect: the database connection
+    :param cursor: the database cursor
+    :param filename: the export file name
     :return:
     """
     cursor.execute("""select * from book_tb""")
     results = cursor.fetchall()
-    connection.commit()
+    connect.commit()
     results = [dict(ix) for ix in results]
     json_results = json.dumps(results, indent=2)
     with open(filename, 'w') as outfile:
-        print("Writing JSON to file...")
+        print("Writing book JSON to file...")
         outfile.write(json_results)
 
 
-def import_json(connect, cursor, filename):
+def export_author(connect, cursor, filename):
     """
+    export the database to a json file
+    :param connect: the database connection
+    :param cursor: the database cursor
+    :param filename: the export file name
+    :return:
+    """
+    cursor.execute("""select * from author_tb""")
+    results = cursor.fetchall()
+    connect.commit()
+    results = [dict(ix) for ix in results]
+    json_results = json.dumps(results, indent=2)
+    with open(filename, 'w') as outfile:
+        print("Writing author JSON to file...")
+        outfile.write(json_results)
 
-    :param cursor:
-    :param filename:
+
+def import_book(connect, cursor, filename):
+    """
+    import a json file to update database
+    :param connection: the database connection
+    :param cursor: the database cursor
+    :param filename: the imported filename
     :return:
     """
     with open(filename) as inputfile:
@@ -363,7 +386,38 @@ def import_json(connect, cursor, filename):
             data.get('similar_books')
         ))
         connect.commit()
-        print("Book" + data['name'] + " get updated!")
+        print("Book" + data.get('book_name') + " get updated!")
+
+
+def import_author(connect, cursor, filename):
+    """
+    import a json file to update database
+    :param connect: the database connection
+    :param cursor: the database cursor
+    :param filename: the imported filename
+    :return:
+    """
+    with open(filename) as inputfile:
+        file_data = json.load(inputfile)
+
+    if (type(file_data)) is not dict:
+        raise Exception("Wrong data type; expected dict, but got " + type(file_data))
+
+    for data in file_data:
+        cursor.execute("""delete from author_tb WHERE name = data['name'];""")
+        cursor.execute("""insert into author_tb values (?,?,?,?,?,?,?,?,?,?,?)""", (
+            data.get('author_name'),
+            data.get('author_url'),
+            data.get('author_id'),
+            data.get('author_rating'),
+            data.get('rating_count'),
+            data.get('review_count'),
+            data.get('author_image_url'),
+            data.get('related_author'),
+            data.get('author_book')
+        ))
+        connect.commit()
+        print("Author" + data.get('author_name') + " get updated!")
 
 
 if __name__ == '__main__':
@@ -378,7 +432,12 @@ if __name__ == '__main__':
     store_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')))
     store_similar_books(CONN, CURR, BOOKINFO, ARGS.book_number)
     store_similar_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')), ARGS.author_number)
-    if ARGS.import_JSON is not None:
-        import_json(CONN, CURR, ARGS.import_JSON)
-    if ARGS.export_JSON is not None:
-        export_json(CONN, CURR, ARGS.export_JSON)
+    if ARGS.import_book is not None:
+        import_book(CONN, CURR, ARGS.import_JSON)
+    if ARGS.export_book is not None:
+        export_book(CONN, CURR, ARGS.export_JSON)
+    if ARGS.export_author is not None:
+        export_author(CONN, CURR, ARGS.export_JSON)
+    if ARGS.import_author is not None:
+        import_author(CONN, CURR, ARGS.export_JSON)
+        

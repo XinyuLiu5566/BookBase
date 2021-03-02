@@ -47,10 +47,10 @@ Command Line Interface
 -------
 This is the Command Line Interface if you just type "python main.py" in the terminal without any arguments:
 
-![title](MTP/ICL.png)
+![title](MTP/CLI.png)
 
 Then if you type "python main.py -h" in the terminal, which give users explanations about the argument:
-![title](MTP/ICL_help.png)
+![title](MTP/CLI_help.png)
 
 If a user gave an invalid url, this will appear:
 ![title](MTP/invalid_url.png)
