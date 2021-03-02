@@ -72,5 +72,5 @@ The database stored after scraping is:
 ![title](MTP/db.png)
 
 
-[Intellij IDEA]: https://www.jetbrains.com/pycharm/
-[Eclipse]: https://www.pydev.org/
+[PyCharm]: https://www.jetbrains.com/pycharm/
+[PyDev for Eclipse]: https://www.pydev.org/
