@@ -25,11 +25,11 @@ if __name__ == '__main__':
         if ARGS.JSON is None:
             print("You must have a json object to do the PUT request!")
         else:
-            requests.put(ARGS.PUT, data=ARGS.JSON)
+            requests.put(ARGS.PUT, json=ARGS.JSON)
     if ARGS.POST is not None:
         if ARGS.JSON is None:
             print("you must have something to POST!")
         else:
-            requests.post(ARGS.POST, data=ARGS.JSON)
+            requests.post(ARGS.POST, json=ARGS.JSON)
     if ARGS.DELETE is not None:
         requests.delete(ARGS.DELETE)
