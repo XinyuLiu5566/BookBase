@@ -210,9 +210,5 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(results[0]['name'], 'abc')
 
 
-
-
-
-
 if __name__ == '__main__':
     unittest.main()

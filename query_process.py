@@ -19,7 +19,6 @@ class queryProcessor:
         self.query = query
         self.CONN, self.CURR = connect_to_db()
 
-
     def execute_quote_query(self, table, field, value):
         """
         execute query with quote
@@ -50,7 +49,6 @@ class queryProcessor:
         self.CONN.commit()
         return results
 
-
     def process_query(self):
         """
         parser for the query
@@ -63,8 +61,6 @@ class queryProcessor:
         query_attr = split_query[1]
         if table != 'book' and table != 'author':
             raise Exception("Table " + table + " does not exist")
-
-        # results = []
 
         field = query_attr.split(':')[0].strip()
         value = query_attr.split(':')[1].strip()
