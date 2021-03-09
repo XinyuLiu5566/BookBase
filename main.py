@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import requests
 import os
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 DATABASE_USERNAME = os.getenv("DATABASE_USERNAME")
@@ -26,15 +27,19 @@ def get_book_info(CONN, CURR, website):
 
     if website[:30] != "https://www.goodreads.com/book":
         raise Exception("The book url must be a GoodReads book!")
-    if get_book_table_size(CONN, CURR) > 200:
-        warnings.warn("There are " + str(get_book_table_size(CONN, CURR))
-                      + " books in the table, already greater than 200")
+    # if get_book_table_size(CONN, CURR) > ARGS.book_number:
+    #     warnings.warn("There are " + str(get_book_table_size(CONN, CURR))
+    #                   + " books in the table, already greater than 200")
     print("getting book info from " + website)
     html_text = requests.get(website)
     soup = BeautifulSoup(html_text.text, 'lxml')
     book_name = soup.find('h1', class_="gr-h1 gr-h1--serif").text.strip()
     book_url = website
-    book_id = website.split('/')[-1].split('.')[0]
+    book_id = website.split('/')[-1]
+    if '.' in book_id:
+        book_id = book_id.split('.')[0]
+    elif '-' in book_id:
+        book_id = book_id.split('-')[0]
     book_isbn = None
     book_isbn_list = soup.find_all('div', class_="infoBoxRowItem")
     for each in book_isbn_list:
@@ -84,9 +89,9 @@ def get_author_info(CONN, CURR, website):
     :param website: the website of the author to scrape
     :return: the dictionary contains the required author information
     """
-    if get_author_table_size(CONN, CURR) > 50:
-        warnings.warn("There are " + str(get_author_table_size(CONN, CURR))
-                      + " authors in the table, already greater than 50")
+    # if get_author_table_size(CONN, CURR) > 50:
+    #     warnings.warn("There are " + str(get_author_table_size(CONN, CURR))
+    #                   + " authors in the table, already greater than 50")
     print("getting author info from " + website)
     html_text = requests.get(website)
     soup = BeautifulSoup(html_text.text, 'lxml')
@@ -145,6 +150,13 @@ def store_book(connect, cursor, book_info):
     :param book_info: the information of the book (dict) to store into database
     :return:
     """
+    cursor.execute("""SELECT * from book WHERE id = (?)""", (book_info.get('book_id'),))
+    results = cursor.fetchall()
+    results = [dict(ix) for ix in results]
+    connect.commit()
+    if len(results) > 0:
+        return
+
     similar_books = book_info.get('similar_books')
     similar_books_list = ""
     for i, each_book_info in enumerate(similar_books, 1):
@@ -152,7 +164,7 @@ def store_book(connect, cursor, book_info):
                               + ": " + each_book_info.get('url')
         similar_books_list += "\n"
 
-    cursor.execute("""insert into book_tb values (?,?,?,?,?,?,?,?,?,?,?)""", (
+    cursor.execute("""insert into book values (?,?,?,?,?,?,?,?,?,?,?)""", (
         book_info.get('book_name'),
         book_info.get('book_url'),
         book_info.get('book_id'),
@@ -177,6 +189,13 @@ def store_author(connect, cursor, author_info):
     :param author_info: the information of the author (dict) to store into database
     :return:
     """
+    cursor.execute("""SELECT * from author WHERE id = (?)""", (author_info.get('author_id'),))
+    results = cursor.fetchall()
+    results = [dict(ix) for ix in results]
+    connect.commit()
+    if len(results) > 0:
+        return
+
     related_author = author_info.get('related_author')
     related_author_list = ""
     for i, each_author_info in enumerate(related_author, 1):
@@ -191,7 +210,7 @@ def store_author(connect, cursor, author_info):
                              + ": " + each_author_book.get('book_url')
         author_books_list += "\n"
 
-    cursor.execute("""insert into author_tb values (?,?,?,?,?,?,?,?,?)""", (
+    cursor.execute("""insert into author values (?,?,?,?,?,?,?,?,?)""", (
         author_info.get('author_name'),
         author_info.get('author_url'),
         author_info.get('author_id'),
@@ -203,7 +222,7 @@ def store_author(connect, cursor, author_info):
         author_books_list
     ))
     connect.commit()
-    print("There are " + str(get_author_table_size(connect, cursor)) + " authors in author_tb table")
+    print("There are " + str(get_author_table_size(connect, cursor)) + " authors in author table")
 
 
 def store_similar_books(connect, cursor, book_info, stop_number):
@@ -217,15 +236,19 @@ def store_similar_books(connect, cursor, book_info, stop_number):
     """
     similar_books = book_info.get('similar_books')
     for book in similar_books:
+        if get_book_table_size(connect, cursor) >= int(stop_number):
+            break
         info = get_book_info(connect, cursor, book.get('url'))
         store_book(connect, cursor, info)
     while True:
         for book in similar_books:
             # condition check if the requirement meets
-            if get_book_table_size(connect, cursor) > stop_number:
+            if get_book_table_size(connect, cursor) >= int(stop_number):
                 break
             more_similar_books = get_book_info(connect, cursor, book.get('url')).get('similar_books')
             for more_book in more_similar_books:
+                if get_book_table_size(connect, cursor) >= int(stop_number):
+                    break
                 info = get_book_info(connect, cursor, more_book.get('url'))
                 store_book(connect, cursor, info)
         break
@@ -242,16 +265,20 @@ def store_similar_author(connect, cursor, author_info, stop_number):
     """
     related_author = author_info.get('related_author')
     for author in related_author:
+        if get_author_table_size(connect, cursor) > int(stop_number):
+            break
         info = get_author_info(connect, cursor, author.get('related_author_url'))
         store_author(connect, cursor, info)
     while True:
         for author in related_author:
             # condition check if the requirement meets
-            if get_author_table_size(connect, cursor) > stop_number:
+            if get_author_table_size(connect, cursor) > int(stop_number):
                 break
             author_info = author.get('related_author_url')
             more_related_author = get_author_info(connect, cursor, author_info).get('related_author')
             for more_author in more_related_author:
+                if get_author_table_size(connect, cursor) > int(stop_number):
+                    break
                 info = get_author_info(connect, cursor, more_author.get('related_author_url'))
                 store_author(connect, cursor, info)
         break
@@ -264,7 +291,7 @@ def get_book_table_size(connect, cursor):
     :param cursor: database cursor
     :return: the size of the book table in the database
     """
-    cursor.execute("""select * from book_tb""")
+    cursor.execute("""select * from book""")
     results = cursor.fetchall()
     connect.commit()
     return len(results)
@@ -277,7 +304,7 @@ def get_author_table_size(connect, cursor):
     :param cursor: database cursor
     :return: the size of the author table in the database
     """
-    cursor.execute("""select * from author_tb""")
+    cursor.execute("""select * from author""")
     results = cursor.fetchall()
     connect.commit()
     return len(results)
@@ -288,19 +315,22 @@ def connect_to_db():
     connect to the database
     :return: return the connect and cursor of the connection
     """
-    connect = sqlite3.connect('book_and_author_db')
+    connect = sqlite3.connect('book_and_author_db', check_same_thread=False)
     connect.row_factory = sqlite3.Row
     cursor = connect.cursor()
-    cursor.execute("""DROP TABLE IF EXISTS author_tb""")
-    cursor.execute("""DROP TABLE IF EXISTS book_tb""")
-    cursor.execute("""CREATE TABLE author_tb(name text, url text, id text, rating text,
+    return connect, cursor
+
+
+def create_tables(connect, cursor):
+    cursor.execute("""DROP TABLE IF EXISTS author""")
+    cursor.execute("""DROP TABLE IF EXISTS book""")
+    cursor.execute("""CREATE TABLE author(name text, url text, id text, rating text,
                     rating_count text, review_count text, image_url text,
                     related_author text, author_books text) """)
-    cursor.execute("""CREATE TABLE book_tb(name text, url text, id text, ISBN text,
-                    author_url text, author_name text, book_rating text, rating_count text,
+    cursor.execute("""CREATE TABLE book(name text, url text, id text, ISBN text,
+                    author_url text, author_name text, rating text, rating_count text,
                     review_count text, image_url text, similar_books text) """)
     connect.commit()
-    return connect, cursor
 
 
 def create_parser():
@@ -318,7 +348,24 @@ def create_parser():
     parser.add_argument('--export_author', type=str, help='the JSON file to write the author table to')
     parser.add_argument('--import_book', type=str, help='the JSON file of book to read from')
     parser.add_argument('--export_book', type=str, help='the JSON file to write the book table to')
+    parser.add_argument('--GET', type=str, help='GET request')
     return parser.parse_args()
+
+
+def get_book_table(CONN, CURR):
+    CURR.execute("""select * from book""")
+    results = CURR.fetchall()
+    CONN.commit()
+    results = [dict(ix) for ix in results]
+    return results
+
+
+def get_author_table(CONN, CURR):
+    CURR.execute("""select * from author""")
+    results = CURR.fetchall()
+    CONN.commit()
+    results = [dict(ix) for ix in results]
+    return results
 
 
 def export_book_json(connect, cursor, filename):
@@ -329,10 +376,7 @@ def export_book_json(connect, cursor, filename):
     :param filename: the export file name
     :return:
     """
-    cursor.execute("""select * from book_tb""")
-    results = cursor.fetchall()
-    connect.commit()
-    results = [dict(ix) for ix in results]
+    results = get_book_table(connect, cursor)
     json_results = json.dumps(results, indent=2)
     with open(filename, 'w') as outfile:
         print("Writing book JSON to file...")
@@ -347,7 +391,7 @@ def export_author_json(connect, cursor, filename):
     :param filename: the export file name
     :return:
     """
-    cursor.execute("""select * from author_tb""")
+    cursor.execute("""select * from author""")
     results = cursor.fetchall()
     connect.commit()
     results = [dict(ix) for ix in results]
@@ -372,8 +416,8 @@ def import_book_json(connect, cursor, filename):
         raise Exception("Wrong data type; expected dict, but got " + type(file_data))
 
     for data in file_data:
-        cursor.execute("""delete from book_tb WHERE name = data['name'];""")
-        cursor.execute("""insert into book_tb values (?,?,?,?,?,?,?,?,?,?,?)""", (
+        cursor.execute("""DELETE FROM book WHERE name=(?)""", (data['name'],))
+        cursor.execute("""insert into book values (?,?,?,?,?,?,?,?,?,?,?)""", (
             data.get('book_name'),
             data.get('book_url'),
             data.get('book_id'),
@@ -405,8 +449,8 @@ def import_author_json(connect, cursor, filename):
         raise Exception("Wrong data type; expected dict, but got " + type(file_data))
 
     for data in file_data:
-        cursor.execute("""delete from author_tb WHERE name = data['name'];""")
-        cursor.execute("""insert into author_tb values (?,?,?,?,?,?,?,?,?,?,?)""", (
+        cursor.execute("""DELETE FROM author WHERE name=(?)""", (data['name'],))
+        cursor.execute("""insert into author values (?,?,?,?,?,?,?,?,?,?,?)""", (
             data.get('author_name'),
             data.get('author_url'),
             data.get('author_id'),
@@ -428,6 +472,7 @@ if __name__ == '__main__':
         raise Exception("The book url must be a GoodReads book!")
 
     CONN, CURR = connect_to_db()
+    create_tables(CONN, CURR)
     BOOKINFO = get_book_info(CONN, CURR, ARGS.book_url)
     store_book(CONN, CURR, BOOKINFO)
     store_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')))
