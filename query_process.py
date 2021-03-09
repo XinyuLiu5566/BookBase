@@ -2,6 +2,11 @@ from main import *
 
 
 def check_quote(string):
+    """
+    check whether the given string has quote in it
+    :param string: the string to be checked
+    :return: True if the string contains quote, False otherwises
+    """
     if string.startswith("\"") and string.endswith("\""):
         return True
     else:
@@ -16,6 +21,13 @@ class queryProcessor:
 
 
     def execute_quote_query(self, table, field, value):
+        """
+        execute query with quote
+        :param table: database table
+        :param field: database field
+        :param value: value to find
+        :return: rows matched
+        """
         value = value[1:-1]
         self.CURR.execute("""SELECT * from %s WHERE %s = (?)""" % (table, field), (value,))
         results = self.CURR.fetchall()
@@ -24,33 +36,26 @@ class queryProcessor:
         return results
 
     def execute_nonquote_query(self, table, field, value):
+        """
+        execute query without quote
+        :param table: database table
+        :param field: database field
+        :param value: value to find
+        :return: rows matched
+        """
         value = "%"+value+"%"
         self.CURR.execute("""SELECT * from %s WHERE %s LIKE (?)""" % (table, field), (value,))
         results = self.CURR.fetchall()
         results = [dict(ix) for ix in results]
         self.CONN.commit()
         return results
-    # def normal_search(self, value):
 
-    # def not_search(self, value):
-
-    # def and_search(self, value):
-    #     split_value = value.split('AND')
-    #     first_value = split_value[0].strip()
-    #     second_value = split_value[1].strip()
-    #     cursor.execute("""SELECT * from book_tb WHERE %s in (?, ?)""" % field, (first_value, second_value))
-    #     results = cursor.fetchall()
-    #     results = [dict(ix) for ix in results]
-    #     print(results)
-    #     connect.commit()
-
-    # def or_search(self, value):
-    #
-    # def less_than_search(self, value):
-    #
-    # def greater_than_search(self, value):
 
     def process_query(self):
+        """
+        parser for the query
+        :return: the results matched the query
+        """
         if '.' not in self.query or ':' not in self.query:
             raise Exception("Invalid query")
         split_query = self.query.split(".")
