@@ -475,17 +475,14 @@ if __name__ == '__main__':
     create_tables(CONN, CURR)
     BOOKINFO = get_book_info(CONN, CURR, ARGS.book_url)
     store_book(CONN, CURR, BOOKINFO)
-    store_book(CONN, CURR, get_book_info(CONN, CURR, "https://www.goodreads.com/book/show/54549665-the-death-of-francis-bacon"))
     store_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')))
-    export_book_json(CONN, CURR, 'temp.txt')
-    export_author_json(CONN, CURR, 'temp_author.txt')
-    # store_similar_books(CONN, CURR, BOOKINFO, ARGS.book_number)
-    # store_similar_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')), ARGS.author_number)
-    # if ARGS.import_book is not None:
-    #     import_book_json(CONN, CURR, ARGS.import_book)
-    # if ARGS.export_book is not None:
-    #     export_book_json(CONN, CURR, ARGS.export_book)
-    # if ARGS.export_author is not None:
-    #     export_author_json(CONN, CURR, ARGS.export_author)
-    # if ARGS.import_author is not None:
-    #     import_author_json(CONN, CURR, ARGS.export_author)
+    store_similar_books(CONN, CURR, BOOKINFO, ARGS.book_number)
+    store_similar_author(CONN, CURR, get_author_info(CONN, CURR, BOOKINFO.get('book_author_url')), ARGS.author_number)
+    if ARGS.import_book is not None:
+        import_book_json(CONN, CURR, ARGS.import_book)
+    if ARGS.export_book is not None:
+        export_book_json(CONN, CURR, ARGS.export_book)
+    if ARGS.export_author is not None:
+        export_author_json(CONN, CURR, ARGS.export_author)
+    if ARGS.import_author is not None:
+        import_author_json(CONN, CURR, ARGS.export_author)
