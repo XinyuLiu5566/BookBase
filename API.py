@@ -2,16 +2,27 @@ from flask import Flask, jsonify, request, Response
 from main import connect_to_db, get_book_table, get_author_table, \
     get_book_info, get_author_info, store_author, store_book
 from query_process import *
+from flask_cors import CORS
 
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
+CORS(app, support_credentials=True)
 CONN, CURR = connect_to_db()
 
 
 @app.route('/', methods=['GET'])
 def home():
     return "<h1>Distant Reading Archive</h1><p>This site is a prototype API for distant reading of science fiction novels.</p>"
+
+
+@app.route('/api/books')
+def get_all_books():
+    results = get_book_table(CONN, CURR)
+    if results:
+        return jsonify(results)
+    else:
+        return Response(status=400)
 
 
 @app.route('/api/book', methods=['GET'])
@@ -55,7 +66,7 @@ def search():
     if 'q' in request.args:
         query = request.args['q']
         query_processor = queryProcessor(query)
-        results = query_processor.process_query(CONN, CURR)
+        results = query_processor.process_query()
     else:
         return "you must have a query to search!"
     if results is not None:
@@ -79,8 +90,9 @@ def update_book_by_id():
     for each_book in books:
         if each_book['id'] == id:
             book = each_book
-    # print(book)
-    for each_attr, attr_value in request.json.items():
+            break
+    data = json.loads(request.data)
+    for each_attr, attr_value in data.items():
         book[each_attr] = attr_value
     # print(book)
     CURR.execute("""insert into book values (?,?,?,?,?,?,?,?,?,?,?)""", (
@@ -90,7 +102,7 @@ def update_book_by_id():
         book.get('ISBN'),
         book.get('author_url'),
         book.get('author_name'),
-        book.get('book_rating'),
+        book.get('rating'),
         book.get('rating_count'),
         book.get('review_count'),
         book.get('image_url'),
@@ -168,7 +180,7 @@ def post_book_to_database():
 @app.route('/api/author', methods=['POST'])
 def post_author_to_database():
     author = request.json
-    CURR.execute("""insert into author values (?,?,?,?,?,?,?,?,?,?,?)""", (
+    CURR.execute("""insert into author values (?,?,?,?,?,?,?,?,?)""", (
         author.get('author_name'),
         author.get('author_url'),
         author.get('author_id'),
@@ -214,7 +226,7 @@ def post_books_to_database():
 def post_authors_to_database():
     authors = request.json
     for author in authors:
-        CURR.execute("""insert into author values (?,?,?,?,?,?,?,?,?,?,?)""", (
+        CURR.execute("""insert into author values (?,?,?,?,?,?,?,?,?)""", (
             author.get('author_name'),
             author.get('author_url'),
             author.get('author_id'),
