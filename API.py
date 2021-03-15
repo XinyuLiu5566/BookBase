@@ -17,13 +17,31 @@ def home():
 
 
 @app.route('/api/books')
-def get_all_books():
+def get_topk_books():
     results = get_book_table(CONN, CURR)
+    results = sorted(results, key=lambda k: k['rating'], reverse=True) 
+    # if 'id' in request.args:
+    #     id = request.args['id']
+    # else:
+    #     return "You must have an id to update"
     if results:
         return jsonify(results)
     else:
         return Response(status=400)
 
+
+@app.route('/api/authors')
+def get_topk_authors():
+    results = get_author_table(CONN, CURR)
+    results = sorted(results, key=lambda k: k['rating'], reverse=True) 
+    # if 'id' in request.args:
+    #     id = request.args['id']
+    # else:
+    #     return "You must have an id to update"
+    if results:
+        return jsonify(results)
+    else:
+        return Response(status=400)
 
 @app.route('/api/book', methods=['GET'])
 def get_book_by_id():
@@ -131,11 +149,13 @@ def update_author_by_id():
     for each_author in authors:
         if each_author['id'] == id:
             author = each_author
+            break
     # print(book)
-    for each_attr, attr_value in request.json.items():
+    data = json.loads(request.data)
+    for each_attr, attr_value in data.items():
         author[each_attr] = attr_value
     # print(book)
-    CURR.execute("""insert into author values (?,?,?,?,?,?,?,?,?,?,?)""", (
+    CURR.execute("""insert into author values (?,?,?,?,?,?,?,?,?)""", (
         author.get('author_name'),
         author.get('author_url'),
         author.get('author_id'),
