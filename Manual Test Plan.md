@@ -44,6 +44,10 @@ If the number of authors meet the requirement, this warning will appear:\
 If the number of books meet the requirement, this warning will appear:\
 ![title](MTP/book_number_warning.png)
 
+If the requests fail, such as invalid book id entered, this error will show up:
+![title](MTP/error.png)
+
+
 
 
 Command Line Interface
