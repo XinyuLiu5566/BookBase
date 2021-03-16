@@ -104,10 +104,10 @@ export const AuthorForm = ({request}) => {
       <Form.Input label='Rating Count' value={rating_count} placeholder='Rating Count' width={4} onChange={e => setRatingCount(e.target.value)}/>
       <Form.Input label='Review Count' value={review_count} placeholder='Review Count' width={4} onChange={e => setReviewCount(e.target.value)}/>
     </Form.Group>
-      <Form.Input label='Author Books' value={author_book} placeholder='Author Books' width={18} onChange={e => setAuthorBook(e.target.value)}/>
-      <Form.Input label='Image url' value={author_image_url} placeholder='Image url' width={18} onChange={e => setAuthorImageUrl(e.target.value)}/>
-      <Form.Input label='Author url' value={author_url} placeholder='Author url' width={18} onChange={e => setAuthorUrl(e.target.value)}/>
-      <Form.Input label='Related Author' value={related_author} placeholder='Related Author' onChange={e => setRelatedAuthor(e.target.value)} width={25} />
+      <Form.Input label='Author Books' value={author_book} placeholder='Author Books' width={16} onChange={e => setAuthorBook(e.target.value)}/>
+      <Form.Input label='Image url' value={author_image_url} placeholder='Image url' width={16} onChange={e => setAuthorImageUrl(e.target.value)}/>
+      <Form.Input label='Author url' value={author_url} placeholder='Author url' width={16} onChange={e => setAuthorUrl(e.target.value)}/>
+      <Form.Input label='Related Author' value={related_author} placeholder='Related Author' onChange={e => setRelatedAuthor(e.target.value)} width={16} />
     <Form.Field>
       <br></br>
       <Button primary onClick={handleUpdateClick}>Update</Button>
@@ -125,10 +125,10 @@ export const AuthorForm = ({request}) => {
       <Form.Input label='Rating Count' value={rating_count} placeholder='Rating Count' width={4} onChange={e => setRatingCount(e.target.value)}/>
       <Form.Input label='Review Count' value={review_count} placeholder='Review Count' width={4} onChange={e => setReviewCount(e.target.value)}/>
     </Form.Group>
-      <Form.Input label='Author Books' value={author_book} placeholder='Author Books' width={18} onChange={e => setAuthorBook(e.target.value)}/>
-      <Form.Input label='Image url' value={author_image_url} placeholder='Image url' width={18} onChange={e => setAuthorImageUrl(e.target.value)}/>
-      <Form.Input label='Author url' value={author_url} placeholder='Author url' width={18} onChange={e => setAuthorUrl(e.target.value)}/>
-      <Form.Input label='Related Author' value={related_author} placeholder='Related Author' onChange={e => setRelatedAuthor(e.target.value)} width={25} />
+      <Form.Input label='Author Books' value={author_book} placeholder='Author Books' width={16} onChange={e => setAuthorBook(e.target.value)}/>
+      <Form.Input label='Image url' value={author_image_url} placeholder='Image url' width={16} onChange={e => setAuthorImageUrl(e.target.value)}/>
+      <Form.Input label='Author url' value={author_url} placeholder='Author url' width={16} onChange={e => setAuthorUrl(e.target.value)}/>
+      <Form.Input label='Related Author' value={related_author} placeholder='Related Author' onChange={e => setRelatedAuthor(e.target.value)} width={16} />
     <Form.Field>
       <br></br>
       <Button primary onClick={handleSubmitClick}>Submit</Button>

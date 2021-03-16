@@ -6,7 +6,7 @@ export const Authors = ( {authors} ) => {
       {authors.map(function(author, index){
         return (
           <div>
-          <h3>Author {index}</h3>
+          <h3>Author {index+1}</h3>
           <ul>
         <img src={author.image_url} width="200" height="300"/>
         <li key='name'>Author Name: <a href={author.url}>{author.name}</a></li>
