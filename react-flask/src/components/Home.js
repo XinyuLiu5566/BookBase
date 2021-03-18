@@ -82,7 +82,7 @@ const Home = () => {
         if (request === "GET") {
         setBookShow(true)
         setAuthorShow(false)
-        const url = "http://127.0.0.1:5000/api/book?id=" + text
+        const url = "http://127.0.0.1:5000/api/author?id=" + text
         await fetch(url, {
                 method:'GET',
                 headers : { 
@@ -102,7 +102,7 @@ const Home = () => {
         } else if (request === "DELETE") {
         setBookShow(false)
         setAuthorShow(false)
-        const url = "http://127.0.0.1:5000/api/book?id=" + text
+        const url = "http://127.0.0.1:5000/api/author?id=" + text
         await fetch(url, {
             method:'DELETE',
             headers : { 
@@ -115,12 +115,12 @@ const Home = () => {
             alert("The DELETE request is successful!")
             }
         })
-        } else if (request === "DELETE") {
+        } else if (request === "PUT") {
         setBookShow(false)
         setAuthorShow(false)
-        const url = "http://127.0.0.1:5000/api/book?id=" + text
+        const url = "http://127.0.0.1:5000/api/author?id=" + text
         await fetch(url, {
-            method:'DELETE',
+            method:'PUT',
             headers : { 
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
@@ -128,15 +128,15 @@ const Home = () => {
         .then((response) => {
             if(!response.ok) throw new Error(response.status);
             else {
-            alert("The DELETE request is successful!")
+            alert("The PUT request is successful!")
             }
         })
-        } else if (request === "DELETE") {
+        } else if (request === "POST") {
         setBookShow(false)
         setAuthorShow(false)
-        const url = "http://127.0.0.1:5000/api/book?id=" + text
+        const url = "http://127.0.0.1:5000/api/author" + text
         await fetch(url, {
-            method:'DELETE',
+            method:'POST',
             headers : { 
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
@@ -144,7 +144,7 @@ const Home = () => {
         .then((response) => {
             if(!response.ok) throw new Error(response.status);
             else {
-            alert("The DELETE request is successful!")
+            alert("The POST request is successful!")
             }
         })
         }
